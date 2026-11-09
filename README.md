@@ -1,5 +1,9 @@
 # Picasso Studio
 
+<p align="center">
+  <img src="docs/assets/picasso-studio-logo.png" alt="Picasso Studio logo" width="800">
+</p>
+
 Picasso Studio is a local visual design app for coding agents and an embeddable visual editor for web-design wireframes. Create standalone layouts from geometric shapes and web controls, then fine-tune them through a context-sensitive Properties panel.
 
 ## Install for a harness

@@ -40,7 +40,7 @@ user-authored or modified skills are preserved with a conflict error.
 
 To review a package before publication, run `npm pack` and install the resulting
 tarball using `npx --package ./picasso-studio-0.2.0.tgz picasso-studio --harness codex --local`.
-The npm registry name and publication rights must be verified before release.
+Maintainers can publish future versions through the [GitHub Actions release workflow](docs/releases.md).
 
 ## Features
 

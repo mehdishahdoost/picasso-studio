@@ -1,0 +1,88 @@
+name: Release and publish
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Validate release tag
+        id: version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          git merge-base --is-ancestor HEAD origin/main
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          const { name, version } = JSON.parse(readFileSync('package.json', 'utf8'));
+          if (name !== 'picasso-studio' || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version) || process.env.RELEASE_TAG !== `v${version}`) {
+            throw new Error('Release tag must equal v<package.json version> for picasso-studio');
+          }
+          appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\nprerelease=${version.includes('-')}\ndist_tag=${version.includes('-') ? 'next' : 'latest'}\n`);
+          NODE
+      - uses: pnpm/action-setup@9bbca1e9dc2902adb87e8780fe5c98796985a62d # v6.1.1
+        with:
+          version: 11.5.2
+      - run: pnpm install --frozen-lockfile
+      - name: Install test browser
+        run: |
+          pnpm exec playwright-core install --with-deps chromium
+          node --input-type=module -e 'import { chromium } from "playwright-core"; console.log(`STUDIO_CHROME=${chromium.executablePath()}`)' >> "$GITHUB_ENV"
+      - run: npm run build
+      - run: npm run test:ci
+      - name: Pack verified build
+        run: npm pack --ignore-scripts --json > pack.json
+      - name: Publish to npm using trusted publishing
+        env:
+          DIST_TAG: ${{ steps.version.outputs.dist_tag }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          import { execFileSync, spawnSync } from 'node:child_process';
+          const [pack] = JSON.parse(readFileSync('pack.json', 'utf8'));
+          const lookup = spawnSync('npm', ['view', `${pack.name}@${pack.version}`, 'dist.integrity', '--json', '--prefer-online'], { encoding: 'utf8' });
+          if (lookup.status === 0) {
+            if (JSON.parse(lookup.stdout) !== pack.integrity) throw new Error('Version is already published with different contents; bump package.json version');
+            console.log('Identical package already published; continuing GitHub release.');
+          } else {
+            let error;
+            try { error = JSON.parse(lookup.stdout).error; } catch {}
+            if (error?.code !== 'E404') throw new Error(`Registry lookup failed: ${lookup.stderr}`);
+            execFileSync('npm', ['publish', pack.filename, '--access', 'public', '--provenance', '--tag', process.env.DIST_TAG], { stdio: 'inherit' });
+          }
+          NODE
+      - name: Create GitHub release and attach package
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+        run: |
+          package_file=$(node -p 'JSON.parse(require("fs").readFileSync("pack.json", "utf8"))[0].filename')
+          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$package_file" --clobber
+          else
+            args=(--verify-tag --generate-notes --title "$RELEASE_TAG")
+            if [ "$PRERELEASE" = true ]; then args+=(--prerelease); fi
+            gh release create "$RELEASE_TAG" "$package_file" "${args[@]}"
+          fi

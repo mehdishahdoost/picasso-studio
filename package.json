@@ -8,7 +8,8 @@
     "test": "vitest run",
     "prepack": "npm run build",
     "test:unit": "vitest run test/protocol.test.ts test/store.test.ts test/controller.test.ts test/preview.test.tsx",
-    "test:browser": "vitest run test/browser.test.ts"
+    "test:browser": "vitest run test/browser.test.ts",
+    "test:ci": "vitest run --exclude test/harness-config.test.ts"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
@@ -38,5 +39,17 @@
     "dist-runtime",
     "README.md",
     "docs"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mehdishahdoost/picasso-studio.git"
+  },
+  "homepage": "https://github.com/mehdishahdoost/picasso-studio#readme",
+  "bugs": {
+    "url": "https://github.com/mehdishahdoost/picasso-studio/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

@@ -1,0 +1,7 @@
+{
+  "requestId": "example-update",
+  "actorId": "agent",
+  "origin": "harness",
+  "baseRevision": 0,
+  "operations": [{ "type": "update", "pageId": "home", "id": "button", "patch": { "text": "Create account", "fill": "#2563eb", "width": 180 } }]
+}

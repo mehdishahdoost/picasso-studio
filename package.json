@@ -1,9 +1,42 @@
 {
-  "name": "picasso",
-  "version": "0.1.0",
-  "private": true,
+  "name": "picasso-studio",
+  "version": "0.2.0",
   "type": "module",
-  "scripts": {"dev": "vite", "build": "tsc -b && vite build", "test": "vitest run"},
-  "dependencies": {"@vitejs/plugin-react": "latest", "react": "latest", "react-dom": "latest", "vite": "latest"},
-  "devDependencies": {"@types/react": "latest", "@types/react-dom": "latest", "typescript": "latest", "vitest": "latest"}
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.runtime.json && vite build && vite build --config vite.runtime.config.ts && node scripts/prepare-runtime.mjs",
+    "test": "vitest run",
+    "prepack": "npm run build",
+    "test:unit": "vitest run test/protocol.test.ts test/store.test.ts test/controller.test.ts test/preview.test.tsx",
+    "test:browser": "vitest run test/browser.test.ts"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@types/node": "26.6.6",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "jsonc-parser": "3.3.1",
+    "playwright-core": "1.65.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "toml-eslint-parser": "1.0.3",
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest",
+    "zod": "4.6.7"
+  },
+  "description": "Local visual design collaboration for coding agents",
+  "bin": {
+    "picasso-studio": "dist-runtime/cli.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "dist-runtime",
+    "README.md",
+    "docs"
+  ]
 }

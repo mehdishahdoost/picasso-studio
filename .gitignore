@@ -2,3 +2,7 @@ node_modules/
 dist/
 *.tsbuildinfo
 .DS_Store
+dist-runtime/
+*.tgz
+.picasso-studio/runtime/
+.picasso-studio/sessions/

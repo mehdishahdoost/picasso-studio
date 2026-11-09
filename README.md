@@ -1,6 +1,42 @@
-# Picasso
+# Picasso Studio
 
-Picasso is an embeddable visual editor for web-design wireframes. Create standalone layouts from geometric shapes and web controls, then fine-tune them through a context-sensitive Properties panel.
+Picasso Studio is a local visual design app for coding agents and an embeddable visual editor for web-design wireframes. Create standalone layouts from geometric shapes and web controls, then fine-tune them through a context-sensitive Properties panel.
+
+## Install for a harness
+
+Requires Node 22+ and a local Git repository for local installation and design sessions.
+
+```bash
+npx picasso-studio --harness codex --local
+npx picasso-studio --harness claude --global
+npx picasso-studio --harness devin --local
+```
+
+Pass exactly one of `--local` (current repository) or `--global` (current user).
+Installation registers both the skill and its harness-managed stdio MCP server.
+Reload/discover the MCP registration and approve it using the harness’s normal controls.
+Then invoke `$picasso-studio` in Codex or `/picasso-studio` in Claude Code or
+Devin CLI. Reload the harness if it has not discovered the skill yet.
+
+The installed skill calls MCP tools to start/reuse the bundled local server and open the production editor in your browser. Every open result includes a URL and verified editor-connection status. Design,
+then press **Implement**. User edits stay drafts until **Update implementation**;
+agent edits to design objects appear live. The active agent checks for submitted
+updates between implementation steps and after checks. Studio runs entirely on
+your machine; no hosted Picasso service, account, source checkout, or Vite server
+is needed after installation. The runtime remains available after npx cache cleanup.
+
+See [sessions](docs/sessions.md), [the implementation loop](docs/implementation.md),
+[the object protocol](docs/protocol.md), [MCP tools](docs/mcp.md), and [harness compatibility](docs/compatibility.md).
+
+Local installs register a repository skill and keep the runtime in
+`.picasso-studio/runtime/<version>/`. Global installs keep the runtime in
+`~/.picasso-studio/runtime/<version>/`. Installation prints the actual skill and
+launcher paths. Re-run installation with a new version to update a managed skill;
+user-authored or modified skills are preserved with a conflict error.
+
+To review a package before publication, run `npm pack` and install the resulting
+tarball using `npx --package ./picasso-studio-0.2.0.tgz picasso-studio --harness codex --local`.
+The npm registry name and publication rights must be verified before release.
 
 ## Features
 
@@ -27,11 +63,16 @@ Create a production build with:
 pnpm run build
 ```
 
-Run the test suite with:
+Build first, then run the test suite (including local-server and packed-package browser checks):
 
 ```bash
+pnpm run build
 pnpm test
 ```
+
+The browser test uses Google Chrome at `/usr/bin/google-chrome`; set `STUDIO_CHROME`
+to another Chromium executable if needed. `npm run test:unit` runs pure protocol,
+store, controller, and preview tests. Browser and server tests require loopback access.
 
 ## React usage
 

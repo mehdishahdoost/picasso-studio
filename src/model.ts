@@ -8,7 +8,7 @@ export type PicasoPage = { id: string; name: string; shapes: PicasoShape[] }
 export type PicasoDocument = { schemaVersion: 1; documentId: string; activePageId: string; pages: PicasoPage[] }
 export type PicasoCommand = { type: 'add'|'delete'|'move'|'update'; shape?: PicasoShape; id?: string; dx?: number; dy?: number; patch?: Partial<PicasoShape> }
 export const createDocument = (): PicasoDocument => { const page = { id: crypto.randomUUID(), name: 'Home', shapes: [] }; return { schemaVersion: 1, documentId: crypto.randomUUID(), activePageId: page.id, pages: [page] } }
-export const activatePage = (document: PicasoDocument, pageId: string): PicasoDocument => { const index = document.pages.findIndex(page => page.id === pageId); if (index < 0) return document; const next = clone(document); next.activePageId = pageId; next.pages = [next.pages[index], ...next.pages.filter(page => page.id !== pageId)]; return next }
+export const activatePage = (document: PicasoDocument, pageId: string): PicasoDocument => { const index = document.pages.findIndex(page => page.id === pageId); if (index < 0) return document; const next = clone(document); next.activePageId = pageId; return next }
 export const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value))
 export function applyCommand(document: PicasoDocument, command: PicasoCommand): PicasoDocument {
   const next = clone(document), page = next.pages.find(candidate => candidate.id === next.activePageId) ?? next.pages[0]
